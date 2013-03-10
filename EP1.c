@@ -54,19 +54,24 @@ int main(int argc, char* argv[]){
     /*vamos assumir que mnemonicos comecao com o caracter '{'*/
 
     if( buffer[0] == '+' || buffer[0] == '-' ){
-      for(i = 0; i < 5; i++)
+
+      for(i = 0; i < 5; i++) /*copia o numero a ser inserido no codigo de maquina para uma string auxiliar, a ser impressa no arquivo de saida*/
 	comando[i] = buffer[i];
-      comando[5] = '\0';
+      comando[5] = '\0'; /*marca o final da string contendo o comando/numero em codigo de maquina. Usado para impedir overflow.*/
       
       fprintf(saida, "%s\n", comando);
     }
     
     else if( buffer[3] == '{' ){
-      for(i = 0; i < 3; i++)
+      
+      for(i = 0; i < 3; i++) /*extrai da linha de codigo o mnemonico utilizado para que o codigo correspondete possa ser impresso no arquivo de saida*/
 	mnemonico[i] = buffer[4+i];
-      mnemonico[3] = '\0';
+      mnemonico[3] = '\0'; /*maraca o final da string contendo o mnemico. Impede overflow*/
+      comando[5] = '\0'; /*Idem*/
 
-      if(strcmp(mnemonico, "LDA") == 0){
+      /*Os condicionais a seguir comparam o mnemonico extraido com a lista de mnemonicos do HIPO e colocam em um string auxliar, a ser impressa no arquivo .hip, o codigo correspondente*/
+      
+      if(strcmp(mnemonico, "LDA") == 0){ 
 	comando[0] = '+';
 	comando[1] = '1';
 	comando[2] = '1';
@@ -260,7 +265,8 @@ int main(int argc, char* argv[]){
   }
   
 
-  fclose(entrada);
+  fclose(entrada); /*fecha arquivo de entrada*/
+
   printf("Arquivo em 'codigo-maquina' salvo em %s.\n", arquivoSaida);
   
 
