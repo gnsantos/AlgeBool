@@ -7,9 +7,9 @@
  GRUPO:
  
  GERVASIO PROTASIO DOS SANTOS NETO - NUSP:7990996
- VINICIUS JORGE VENDRAMINI - NUSP:
- MATEUS BARROS RODRIGUES - NUSP:
- VICTOR SANCHES PORTELLA - NUSP:
+ VINICIUS JORGE VENDRAMINI - NUSP: 7991103
+ MATEUS BARROS RODRIGUES - NUSP: 7991037
+ VICTOR SANCHES PORTELLA - NUSP: 7991152
  
  EP1 - MONTADOR
  ***********************************************************************************************/
@@ -36,7 +36,7 @@ void erroSintaxe(char prog_name[]){
 
 int main(int argc, char* argv[]){
     FILE *entrada, *saida; /*ponteiros para os arquivos de entrada e de saida*/
-    int size, linha, i;
+    int size, linhaC = 0, i, linha = 0;
     char arquivoSaida[128], buffer[BUFFER_SIZE], comando[6], mnemonico[4]; /*nomes dos arquivos e um buffer, a ser usado para armazenar os caracteres contidos no arquivoFonte e a traducao do comando*/
     
     printf("Nome do arquivo de entrada: %s\n", argv[1]);
@@ -57,6 +57,7 @@ int main(int argc, char* argv[]){
     arquivoSaida[size-3] = 'h';
     arquivoSaida[size-2] = 'i';
     arquivoSaida[size-1] = 'p';
+
     
     saida = fopen(arquivoSaida, "w"); /*abre o arquivo de saida para escrita*/
     
@@ -68,8 +69,15 @@ int main(int argc, char* argv[]){
         if (buffer[0]>= '0' && buffer[0]<='9' && buffer[1]>= '0' && buffer[1]<='9') {
             printf("%c%c   ", buffer[0], buffer[1]);
             linha = atoi(&buffer[0]);
-            printf("Linha: %d\n", linha);
+	    printf("Linha: %d\n\n", linha);
+	    linhaC++;
         }
+
+	while(linhaC < linha){
+	  printf("linha = %d e linhaC = %d\n\n", linha, linhaC);
+	  fprintf(saida,"\n");
+	  linhaC++;
+	}  
         
         if( buffer[3] == '+' || buffer[3] == '-' ){
             
@@ -84,7 +92,7 @@ int main(int argc, char* argv[]){
             
             for(i = 0; i < 3; i++) /*extrai da linha de codigo o mnemonico utilizado para que o codigo correspondete possa ser impresso no arquivo de saida*/
                 mnemonico[i] = buffer[4+i];
-            mnemonico[3] = '\0'; /*maraca o final da string contendo o mnemico. Impede overflow*/
+            mnemonico[3] = '\0'; /*marca o final da string contendo o mnemico. Impede overflow*/
             comando[5] = '\0'; /*Idem*/
             
             /*Os condicionais a seguir comparam o mnemonico extraido com a lista de mnemonicos do HIPO e colocam em um string auxliar, a ser impressa no arquivo .hip, o codigo correspondente*/
@@ -166,7 +174,7 @@ int main(int argc, char* argv[]){
                 comando[3] = buffer[9];
                 comando[4] = buffer[10];
                 
-                fprintf(saida, "%s\n", comando);
+		fprintf(saida, "%s\n", comando);
             }
             
             else if(strcmp(mnemonico, "INN") == 0){
@@ -176,7 +184,7 @@ int main(int argc, char* argv[]){
                 comando[3] = buffer[9];
                 comando[4] = buffer[10];
                 
-                fprintf(saida, "%s\n", comando);
+		fprintf(saida, "%s\n", comando);
             }
             
             else if(strcmp(mnemonico, "PRN") == 0){
@@ -186,7 +194,7 @@ int main(int argc, char* argv[]){
                 comando[3] = buffer[9];
                 comando[4] = buffer[10];
                 
-                fprintf(saida, "%s\n", comando);
+		fprintf(saida, "%s\n", comando);
             }
             
             else if(strcmp(mnemonico, "NOP") == 0){
@@ -206,7 +214,7 @@ int main(int argc, char* argv[]){
                 comando[3] = buffer[9];
                 comando[4] = buffer[10];
                 
-                fprintf(saida, "%s\n", comando);
+		fprintf(saida, "%s\n", comando);
             }
             
             else if(strcmp(mnemonico, "JLE") == 0){
@@ -216,7 +224,7 @@ int main(int argc, char* argv[]){
                 comando[3] = buffer[9];
                 comando[4] = buffer[10];
                 
-                fprintf(saida, "%s\n", comando);
+		fprintf(saida, "%s\n", comando);
             }
             
             else if(strcmp(mnemonico, "JDZ") == 0){
@@ -226,7 +234,7 @@ int main(int argc, char* argv[]){
                 comando[3] = buffer[9];
                 comando[4] = buffer[10];
                 
-                fprintf(saida, "%s\n", comando);
+		fprintf(saida, "%s\n", comando);
             }
             
             else if(strcmp(mnemonico, "JGT") == 0){
@@ -236,7 +244,7 @@ int main(int argc, char* argv[]){
                 comando[3] = buffer[9];
                 comando[4] = buffer[10];
                 
-                fprintf(saida, "%s\n", comando);
+		fprintf(saida, "%s\n", comando);
             }
             
             else if(strcmp(mnemonico, "JEQ") == 0){
@@ -246,7 +254,7 @@ int main(int argc, char* argv[]){
                 comando[3] = buffer[9];
                 comando[4] = buffer[10];
                 
-                fprintf(saida, "%s\n", comando);
+		fprintf(saida, "%s\n", comando);
             }
             
             else if(strcmp(mnemonico, "JLT") == 0){
@@ -256,7 +264,7 @@ int main(int argc, char* argv[]){
                 comando[3] = buffer[9];
                 comando[4] = buffer[10];
                 
-                fprintf(saida, "%s\n", comando);
+		fprintf(saida, "%s\n", comando);
             }
             
             else if(strcmp(mnemonico, "JGE") == 0){
@@ -266,7 +274,7 @@ int main(int argc, char* argv[]){
                 comando[3] = buffer[9];
                 comando[4] = buffer[10];
                 
-                fprintf(saida, "%s\n", comando);
+		fprintf(saida, "%s\n", comando);
             }
             
             else if(strcmp(mnemonico, "STP") == 0){
@@ -276,9 +284,9 @@ int main(int argc, char* argv[]){
                 comando[3] = '0';
                 comando[4] = '0';
                 
-                fprintf(saida, "%s\n", comando);
+		fprintf(saida, "%s\n", comando);
             }
-            
+	    
         }
         
         cleanBuffer(buffer);
