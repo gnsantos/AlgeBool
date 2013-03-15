@@ -38,18 +38,21 @@ char* cleanCancer(char linha[]){
   for(i = 0; linha[i]!= '\0' && linha[i]!=';'; i++)
     if(linha[i] != ' ') aux[j++] = linha[i];
 
+
   if(!(final = malloc(j+10))) return NULL;
-  
+
   aux[j] = '\0';
   i=j=0;
-  while(aux[j++]!='\0'){
+  while(aux[j]!='\0'){
     if(i==2||i==7) final[i++]=' ';
     final[i++]=aux[j];
+    j++;
   }
+  final[i]='\0';
 
   return final;
-    
-    
+
+
 
 }
 
@@ -66,7 +69,7 @@ int main(int argc, char* argv[]){
     char *arquivoSaida,*prefixo, *buffer, comando[6], mnemonico[4]; /*nomes dos arquivos e um buffer, a ser usado para armazenar os caracteres contidos no arquivoFonte e a traducao do comando*/
 
     buffer = malloc(BUFFER_SIZE);
-    
+
 
     printf("Nome do arquivo de entrada: %s\n", argv[1]);
     size = strlen(argv[1]);
@@ -86,8 +89,8 @@ int main(int argc, char* argv[]){
     arquivoSaida = malloc(strlen(argv[1])+1);
     prefixo = malloc(size);
     strcpy(arquivoSaida,argv[1]);
-    
-    
+
+
     arquivoSaida[size-4] = '\0';
     strcpy(prefixo,arquivoSaida);
 
@@ -99,7 +102,7 @@ int main(int argc, char* argv[]){
         /*buffer[0] e buffer[1] sao o endereco de memoria*/
         /*se ha algo depois de buffer[10] sao, teoricamente, comentarios*/
         /*vamos assumir que mnemonicos comecam com o caracter '{'*/
-      
+
       buffer = cleanCancer(buffer);
       printf("---%s----\n",buffer);
 
