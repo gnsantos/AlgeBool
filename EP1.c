@@ -19,16 +19,32 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BUFFER_SIZE 320
+#define INITIAL_BUFFER_SIZE 100
 #define SINTAX_ERROR -1
 
-void cleanBuffer(char buffer[]){
+/*void cleanBuffer(char buffer[]){
     int i = 0;
     for(i = 0; i < BUFFER_SIZE; i++)
         buffer[i] = '\0';
+}*/
+
+
+
+void * mallocSafe(size_t n)
+{
+  void * pt;
+  pt = malloc(n);
+  if (pt == NULL) {
+    printf("ERRO na alocacao de memoria.\n\n");
+    exit(-1);
+  }
+  return pt;
 }
 
-char* cleanCancer(char linha[]){
+
+
+char* cleanCancer(char linha[])
+{
   char aux[strlen(linha)];
   char* final;
   int i, j =0;
@@ -39,7 +55,7 @@ char* cleanCancer(char linha[]){
     if(linha[i] != ' ') aux[j++] = linha[i];
 
 
-  if(!(final = malloc(j+10))) return NULL;
+  if(!(final = mallocSafe(j+10))) return NULL;
 
   aux[j] = '\0';
   i=j=0;
@@ -52,23 +68,67 @@ char* cleanCancer(char linha[]){
 
   return final;
 
-
-
 }
+
+
+
+
 
 void erroSintaxe(char prog_name[]){
     fprintf(stderr, "Arquivo %s com Erro de Sintaxe. Nenhum arquivo em código máquina será gerado.\n", prog_name);
     prog_name[strlen(prog_name)-4]= '\0';
-    remove(strcat(prog_name,".~hip"));
+    remove(strcat(prog_name,".hip"));
     exit(SINTAX_ERROR);
 }
 
-int main(int argc, char* argv[]){
-    FILE *entrada, *saida; /*ponteiros para os arquivos de entrada e de saida*/
-    int size, linhaC = 0, i, linha = 0;
-    char *arquivoSaida,*prefixo, *buffer, comando[6], mnemonico[4]; /*nomes dos arquivos e um buffer, a ser usado para armazenar os caracteres contidos no arquivoFonte e a traducao do comando*/
 
-    buffer = malloc(BUFFER_SIZE);
+/* ************************************
+A função leLinha le uma linha de um arquivo file sem precisar saber
+o número máximo de caracteres nessa linha.
+**************************************** */
+
+char* leLinha(FILE *file)
+{
+  char *linha, *nlinha;
+  int n=0, ch, size = INITIAL_BUFFER_SIZE;
+
+  linha = (char*) mallocSafe(size+1);
+  while((ch=fgetc(file))!='\n' || ch != EOF )
+  {
+
+    if(n == size)
+    {
+      size*=2;
+      nlinha = (char*) mallocSafe(size+1);
+      strncpy (nlinha, linha, n);
+      free(linha);
+      linha = nlinha;
+    }
+    linha[n++] = ch;
+  }
+
+
+  if (n == 0 && ch == EOF)
+  {
+    free(linha);
+    return NULL;
+  }
+  linha[n]='\0';
+  nlinha = (char*) mallocSafe(n+1);
+  strcpy(nlinha, linha);
+  free(linha);
+  return nlinha;
+
+}
+
+
+
+int main(int argc, char* argv[]){
+    FILE *entrada, *saida, *final; /*ponteiros para os arquivos de entrada e de saida*/
+    int size, linhaC = 0, i, linha = 0;
+    char *arquivoSaida,*prefixo, *buffer, comando[6], mnemonico[4], **saidaTemp; /*nomes dos arquivos e um buffer, a ser usado para armazenar os caracteres contidos no arquivoFonte e a traducao do comando*/
+
+    /*buffer = mallocSafe(BUFFER_SIZE);*/
 
 
     printf("Nome do arquivo de entrada: %s\n", argv[1]);
@@ -86,8 +146,10 @@ int main(int argc, char* argv[]){
 
     /*constroi o nome do arquivo de saida baseando-se no nome do arquivo de entrada do formato nomeDoArquivo.asm*/
 
-    arquivoSaida = malloc(strlen(argv[1])+1);
-    prefixo = malloc(size);
+
+
+    arquivoSaida = mallocSafe(strlen(argv[1])+1);
+    prefixo = mallocSafe(size);
     strcpy(arquivoSaida,argv[1]);
 
 
@@ -98,8 +160,9 @@ int main(int argc, char* argv[]){
 
     saida = fopen(arquivoSaida, "w"); /*abre o arquivo de saida para escrita*/
 
-    while( fgets(buffer, BUFFER_SIZE, entrada) != NULL ){ /*le strings do arquivo de entrada ate encontrar o final do arquivo*/
-        /*buffer[0] e buffer[1] sao o endereco de memoria*/
+
+    while( (buffer=leLinha(entrada)) != NULL ){ /*le strings do arquivo de entrada ate encontrar o final do arquivo*/
+        /*buffer[ 0] e buffer[1] sao o endereco de memoria*/
         /*se ha algo depois de buffer[10] sao, teoricamente, comentarios*/
         /*vamos assumir que mnemonicos comecam com o caracter '{'*/
 
@@ -331,13 +394,16 @@ int main(int argc, char* argv[]){
         }
          else erroSintaxe(prefixo);
 
-        cleanBuffer(buffer);
+       /* cleanBuffer(buffer);*/
     }
 
-    if (!rename(arquivoSaida,strcat(prefixo,".hip"))){
-      perror("Error in renaming file.");
-      exit(-4);
+
+    strcat(prefixo,".hip");
+    if (rename(arquivoSaida,prefixo)){
+      printf("Erro: Problema ao tentar renomear o arquivo temporário.\n");
+      exit(-1);
     }
+
 
     fclose(entrada); /*fecha arquivo de entrada*/
 
