@@ -19,67 +19,25 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define INITIAL_BUFFER_SIZE 100
+#define BUFFER_SIZE 100
 #define SINTAX_ERROR -1
 
-/*void cleanBuffer(char buffer[]){
-    int i = 0;
-    for(i = 0; i < BUFFER_SIZE; i++)
-        buffer[i] = '\0';
-}*/
+/*Variáveis Globais */
+
+char* prefixo;
 
 
 
-void * mallocSafe(size_t n)
-{
-  void * pt;
-  pt = malloc(n);
-  if (pt == NULL) {
-    printf("ERRO na alocacao de memoria.\n\n");
-    exit(-1);
-  }
-  return pt;
-}
+/*---------------- Protótipos das funções ---------------------*/
+void cleanBuffer(char buffer[]);
+void * mallocSafe(size_t n);
+char* verifSintaxe(char linha[]);
+void erroSintaxe(char prog_name[]);
+
+/*------------------------------------------------------------*/
 
 
 
-char* cleanCancer(char linha[])
-{
-  char aux[strlen(linha)];
-  char* final;
-  int i, j =0;
-
-  if(!linha) return NULL;
-
-  for(i = 0; linha[i]!= '\0' && linha[i]!=';'; i++)
-    if(linha[i] != ' ') aux[j++] = linha[i];
-
-
-  if(!(final = mallocSafe(j+10))) return NULL;
-
-  aux[j] = '\0';
-  i=j=0;
-  while(aux[j]!='\0'){
-    if(i==2||i==7) final[i++]=' ';
-    final[i++]=aux[j];
-    j++;
-  }
-  final[i]='\0';
-
-  return final;
-
-}
-
-
-
-
-
-void erroSintaxe(char prog_name[]){
-    fprintf(stderr, "Arquivo %s com Erro de Sintaxe. Nenhum arquivo em código máquina será gerado.\n", prog_name);
-    prog_name[strlen(prog_name)-4]= '\0';
-    remove(strcat(prog_name,".hip"));
-    exit(SINTAX_ERROR);
-}
 
 
 /* ************************************
@@ -87,7 +45,7 @@ A função leLinha le uma linha de um arquivo file sem precisar saber
 o número máximo de caracteres nessa linha.
 **************************************** */
 
-char* leLinha(FILE *file)
+/*char* leLinha(FILE *file)
 {
   char *linha, *nlinha;
   int n=0, ch, size = INITIAL_BUFFER_SIZE;
@@ -95,7 +53,8 @@ char* leLinha(FILE *file)
   linha = (char*) mallocSafe(size+1);
   while((ch=fgetc(file))!='\n' || ch != EOF )
   {
-
+world on fire
+    printf("%c\n",ch);
     if(n == size)
     {
       size*=2;
@@ -120,13 +79,13 @@ char* leLinha(FILE *file)
   return nlinha;
 
 }
-
+*/
 
 
 int main(int argc, char* argv[]){
     FILE *entrada, *saida, *final; /*ponteiros para os arquivos de entrada e de saida*/
     int size, linhaC = 0, i, linha = 0;
-    char *arquivoSaida,*prefixo, *buffer, comando[6], mnemonico[4], **saidaTemp; /*nomes dos arquivos e um buffer, a ser usado para armazenar os caracteres contidos no arquivoFonte e a traducao do comando*/
+    char *arquivoSaida, *buffer, comando[6], mnemonico[4], **saidaTemp; /*nomes dos arquivos e um buffer, a ser usado para armazenar os caracteres contidos no arquivoFonte e a traducao do comando*/
 
     /*buffer = mallocSafe(BUFFER_SIZE);*/
 
@@ -161,12 +120,17 @@ int main(int argc, char* argv[]){
     saida = fopen(arquivoSaida, "w"); /*abre o arquivo de saida para escrita*/
 
 
-    while( (buffer=leLinha(entrada)) != NULL ){ /*le strings do arquivo de entrada ate encontrar o final do arquivo*/
+    buffer = malloc(BUFFER_SIZE);
+    cleanBuffer(buffer);
+
+
+    while( fgets(buffer, BUFFER_SIZE,entrada)!= NULL ){ /*le strings do arquivo de entrada ate encontrar o final do arquivo*/
         /*buffer[ 0] e buffer[1] sao o endereco de memoria*/
         /*se ha algo depois de buffer[10] sao, teoricamente, comentarios*/
         /*vamos assumir que mnemonicos comecam com o caracter '{'*/
 
-      buffer = cleanCancer(buffer);
+
+      buffer = verifSintaxe(buffer);
       printf("---%s----\n",buffer);
 
         if (buffer[0]>= '0' && buffer[0]<='9' && buffer[1]>= '0' && buffer[1]<='9') {
@@ -394,7 +358,7 @@ int main(int argc, char* argv[]){
         }
          else erroSintaxe(prefixo);
 
-       /* cleanBuffer(buffer);*/
+       cleanBuffer(buffer);
     }
 
 
@@ -411,3 +375,171 @@ int main(int argc, char* argv[]){
 
     return 0;
 }
+
+/* ********************************************
+ O método cleanBuffer coloca em todas as posições do vetor
+ de caracteres o caracter '\0'
+********************************************** */
+
+void cleanBuffer(char buffer[]){
+    int i = 0;
+    for(i = 0; i < BUFFER_SIZE; i++)
+        buffer[i] = '\0';
+}
+
+
+/* ********************************************
+ A função mallocSage aloca n Bytes da memória, e caso não seja possível
+ alocar essa quantidade de memória, solta uma mensgaem de erro e finaliza
+ o programa.
+********************************************** */
+void * mallocSafe(size_t n)
+{
+  void * pt;
+  pt = malloc(n);
+  if (pt == NULL) {
+    printf("ERRO na alocacao de memoria.\n\n");
+    exit(-1);
+  }
+  return pt;
+}
+
+
+/* ********************************************
+ A função verifSintaxe pega uma linha e verifica se está de acordo
+ com a sintaxe do HIPO, e retorna uma string onde:
+
+ Carateres 0 e 1 são o endereço de memória
+ Caracteres 3,4,5,6 e 7 são ou o Mnemonico do comando ou um número de 4 digitos com sinal.
+ Caracteres 9 e 10 são um número, caso os caracteres anteriores fossem um mnemonivo.
+
+ Caso haja erro de sintaxe, é chamado o método erroSintaxe();
+********************************************** */
+
+char* verifSintaxe(char linha[])
+{
+  char *final, *temp;
+  int i, j =0, n = 0;
+
+  final = mallocSafe(12);
+
+  if(!linha) return NULL;
+  for(i=0; i<11; i++) final[i] = ' ';
+  final[11]='\0';
+
+
+  while(*linha == ' ') linha++;
+
+  while(*linha !='\n' || *linha != EOF)
+  {
+    if (*linha == ';') break; /*Comentário*/
+
+    switch (n)
+    {
+      /*Primeira palavra: endereço de memória*/
+      case 0:
+
+
+        temp = mallocSafe(3);
+        i=0;
+        while( (*linha<='9' && *linha >= '0') && i<=1 )
+        {
+          temp[i++] = *linha;
+          linha++;
+        }
+
+        /*Caso o endereço de memória contanha mais do que 2 caracteres juntos é erro de sintaxe,
+        por a memória estra entre 0 e 99*/
+        if (*linha != ' ') erroSintaxe(prefixo);
+
+        if( i == 1 )
+          {
+            final[0]='0';
+            final[1]= temp[0];
+          }
+        else for (i=0; i<=1; i++) final[i] = temp[i];
+        n++;
+        break;
+
+
+      /*Segunda palavra: Comando ou valor para se guardar na memória */
+      case 1:
+
+        if(*linha == '+' || *linha == '-') /*Valor a ser guardado */
+          {
+            final[3]=*linha;
+            linha++;
+            for(i=0; i<=3; i++)
+            {
+              if( (final[4+i]= *linha)>'9' || final[4+i]<'0' ) /* Valor tem que ser numérixo */
+                erroSintaxe(prefixo);
+              linha++;
+            }
+
+            /*Se tiver qualque coisa após esse valor, tem que ser comentário, se não é erro de Sintaxe.
+            Caso haja algo que nao seja comentário, cairá no caso Default */
+            n = 3;
+          }
+
+        else if(*linha == '{')
+        {
+          final[3] =  *linha;
+          linha++;
+          while(*linha == ' ') linha++;
+          for(i=0; i<3; i++)
+          {
+            if( (final[4+i]=*linha)<'A' || final[4+i]>'Z') /* Comando deve ter somente letras*/
+              erroSintaxe(prefixo);
+            linha++;
+          }
+          n++;
+
+          /*Agora verificar se existe o fechamento das chaves '}' */
+          while(*linha == ' ') linha++;
+          if( (final[7]=*linha) != '}' ) erroSintaxe(prefixo);
+          linha++;
+
+
+        }
+        else erroSintaxe(prefixo);
+        break;
+
+
+      case 2:
+        for(i=0 ; i<2; i++)
+        {
+          if( (final[9+i] = *linha) < '0' || final[9+i] > '9' )
+            erroSintaxe(prefixo);
+          linha++;
+        }
+        n++;
+        break;
+
+      default:
+        erroSintaxe(prefixo);
+        break;
+    }
+
+     while(*linha == ' ') linha++;
+
+  }
+
+  return final;
+
+}
+
+
+
+/* ********************************************
+ O método erroSintaxe lança uma mensagem avisando sobre o erro de sintaxe,
+deleta o arquivo temporário e finaliza o programa
+********************************************** */
+
+
+void erroSintaxe(char prog_name[]){
+    fprintf(stderr, "Arquivo %s com Erro de Sintaxe. Nenhum arquivo em código máquina será gerado.\n", prog_name);
+    prog_name[strlen(prog_name)-4]= '\0';
+    remove(strcat(prog_name,".~hip"));
+    exit(SINTAX_ERROR);
+}
+
