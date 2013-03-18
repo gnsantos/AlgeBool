@@ -120,7 +120,7 @@ int main(int argc, char* argv[]){
     saida = fopen(arquivoSaida, "w"); /*abre o arquivo de saida para escrita*/
 
 
-    buffer = malloc(BUFFER_SIZE);
+    buffer = mallocSafe(BUFFER_SIZE);
     cleanBuffer(buffer);
 
 
@@ -131,6 +131,13 @@ int main(int argc, char* argv[]){
 
 
       buffer = verifSintaxe(buffer);
+      if (!buffer)
+      {
+        buffer = mallocSafe(BUFFER_SIZE);
+        cleanBuffer(buffer);
+        continue;
+      }
+
       printf("---%s----\n",buffer);
 
         if (buffer[0]>= '0' && buffer[0]<='9' && buffer[1]>= '0' && buffer[1]<='9') {
@@ -383,7 +390,7 @@ int main(int argc, char* argv[]){
 
 void cleanBuffer(char buffer[]){
     int i = 0;
-    for(i = 0; i < BUFFER_SIZE; i++)
+    for(i = 0; i < sizeof(buffer); i++)
         buffer[i] = '\0';
 }
 
@@ -416,19 +423,24 @@ void * mallocSafe(size_t n)
  Caso haja erro de sintaxe, é chamado o método erroSintaxe();
 ********************************************** */
 
-char* verifSintaxe(char linha[])
+char* verifSintaxe(char *linha)
 {
   char *final, *temp;
   int i, j =0, n = 0;
 
   final = mallocSafe(12);
 
+
   if(!linha) return NULL;
+  while(*linha == ' ') linha++;
+  if(*linha == '\n' || *linha == EOF) return NULL; /*Linha vazia*/
+
+
   for(i=0; i<11; i++) final[i] = ' ';
   final[11]='\0';
 
 
-  while(*linha == ' ') linha++;
+
 
   while(*linha !='\n' && *linha != EOF)
   {
