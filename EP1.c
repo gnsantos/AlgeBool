@@ -430,7 +430,7 @@ char* verifSintaxe(char linha[])
 
   while(*linha == ' ') linha++;
 
-  while(*linha !='\n' || *linha != EOF)
+  while(*linha !='\n' && *linha != EOF)
   {
     if (*linha == ';') break; /*Comentário*/
 
