@@ -467,6 +467,7 @@ char* verifSintaxe(char *linha)
 	  break;
 
 
+	   /*Terceira palavra: Só existe se a anterior era um comando, e tem que ser um número de 2 dígitos*/
 	case 2:
 	  for(i=0 ; i<2; i++)
 	    {
@@ -477,6 +478,7 @@ char* verifSintaxe(char *linha)
 	  n++;
 	  break;
 
+	  /*Entra nesse caso somente se for encontrada uma palavra que não condiz com a sintaxe do HIPO*/
 	default:
 	  erroSintaxe(prefixo);
 	  break;
@@ -499,7 +501,7 @@ char* verifSintaxe(char *linha)
 
 
 void erroSintaxe(char prog_name[]){
-  fprintf(stderr, "Arquivo %s com Erro de Sintaxe. Nenhum arquivo em código máquina será gerado.\n", prog_name);
+  fprintf(stdout, "Erro de sintaxe.\n");
   prog_name[strlen(prog_name)-4]= '\0';
   remove(strcat(prog_name,".~hip"));
   exit(SINTAX_ERROR);
